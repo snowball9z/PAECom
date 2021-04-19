@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% block title %}{% endblock%}Phuc Anh Gear</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+		<link rel="stylesheet" href="{% static 'main.css' %}">
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+
+
+	</head>
+
+	<body>
+		<nav class="navbar is-dark" id="navbarapp">
+			<div class="navbar-brand">
+				<a class="navbar-item" href="{% url 'core:frontpage' %}">PhucAnhGear</a>
+
+				<a @click="toggleMenu()" role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="main-navbar">
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+				</a>
+			</div>
+
+            <div id="main-navbar" class="navbar-menu" :class="{ 'is-active': menuClass }">
+				<div class="navbar-start">
+					<div class="navbar-item">
+						<form method="get" action="{% url 'store:searchView' %}">
+							<div class="field has-addons">
+								<div class="control">
+									<input type="text" class="input" placeholder="Search.." name="query">
+								</div>
+								<div class="control">
+									<button class="button is-success">Search</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+                <div class="navbar-end">
+					{% for category in categories %}
+						{% if not category.children.all %}
+						<a href="{% url 'store:categoryDetail' category.slug %}" class="navbar-item">{{ category.title }}</a>
+						{% else %}
+							<div class="navbar-item has-dropdown is-hoverable">
+								<a href="{% url 'store:categoryDetail' category.slug %}" class="navbar-link">{{ category.title }}</a>
+
+								<div class="navbar-dropdown">
+									{% for subcategory in category.children.all %}
+										<a href="{% url 'store:categoryDetail' subcategory.slug %}" class="navbar-item">{{ subcategory.title }}</a>
+									{% endfor%}
+								</div>
+
+							</div>
+						{% endif %}
+					{% endfor %}
+					<div class="navbar-item">
+						<a href="{% url 'cart:cartView'%}" class="button is-primary">Cart ([[ numItems ]])</a>
+					</div>
+
+					{% if request.user.is_authenticated%}
+					<div class="navbar-item">
+						<a href="{% url 'userprofile:accountView' %}" class="button is-light">My account</a>
+					</div>
+					{% else %}
+					<div class="navbar-item">
+						<div class="buttons">
+							<a href="{% url 'userprofile:signupView'%}" class="button is-primary"><strong>Sign
+								up</strong></a>
+							<a href="{% url 'userprofile:loginView'%}" class="button is-light">Log in</a>
+						</div>
+					</div>
+					{% endif %}
+                </div>
+            </div>
+
+		</nav>
+
+		<section class="section">
+			{% block content %}
+            {% endblock %}
+		</section>
+
+		{% include 'parts/newsletter.html'%}
+			<footer class="footer">
+				<div class="columns">
+						<div class="column is-3">
+							<h3 class="subtitle">Services</h3>
+							<ul>
+								<li><a href="#">Web design</a></li>
+								<li><a href="#">Development</a></li>
+								<li><a href="#">Hosting</a></li>
+							</ul>
+						</div>
+						<div class="column is-3">
+							<h3 class="subtitle">About</h3>
+							<ul>
+								<li><a href="{% url 'core:contact' %}">Contact Us</a></li>
+								<li><a href="{% url 'core:about' %}">Company</a></li>
+								<li><a href="#">Careers</a></li>
+							</ul>
+						</div>
+						<div class="column is-6">
+							<h3 class="subtitle">Phuc Anh Gear</h3>
+							<p>Praesent sed lobortis mi. Suspendisse vel placerat ligula. Vivamus ac sem lacus. Ut
+								vehicula rhoncus elementum. Etiam quis tristique lectus. Aliquam in arcu eget velit
+								pulvinar dictum vel in justo.</p>
+							<br>
+						</div>
+				</div>
+				<div class="column">
+					<div class="col item social"><a href="#"><i class="icon ion-social-facebook"></i></a><a href="#"><i class="icon ion-social-twitter"></i></a><a href="#"><i class="icon ion-social-snapchat"></i></a><a href="#"><i class="icon ion-social-instagram"></i></a></div>
+					<p class="copyright">PhucAnhGear © 2021</p>
+				</div>
+			</footer>
+
+		<script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
+
+		<script>
+			var store = new Vuex.Store({
+				state: {
+					numItems: {{cart.get_total_length}},
+					totalCost: {{ cart.get_total_cost }}
+				},
+				mutations: {
+					increment(state, quantity){
+						state.numItems += quantity;
+					},
+					changeTotalCost(state, newCost){
+						state.totalCost += newCost
+					}
+				}
+			});
+			var navbarapp = new Vue ({
+				el: '#navbarapp',
+				delimiters: ['[[', ']]'],
+				store: store,
+				data(){
+					return {
+						menuClass: false
+					}
+				},
+            	computed: {
+            		numItems: function(){
+            			return store.state.numItems
+            		}
+            	},
+            	methods: {
+            		toggleMenu(){
+            			console.log('sadjbhakjsdh')
+            			this.menuClass = !this.menuClass;
+            		}
+            	}
+			});
+		</script>
+
+		{% block scripts %}
+
+		{% endblock %}
+
+	</body>
+</html>
